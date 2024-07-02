@@ -1,4 +1,4 @@
-package sahak.sahakyan.dynamicdeals.ui.theme
+package sahak.sahakyan.dynamicdeals.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build
