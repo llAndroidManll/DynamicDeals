@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "946145969048",
+    "project_id": "dynamic-deals",
+    "storage_bucket": "dynamic-deals.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:946145969048:android:915b9609834dbecd1b21ed",
+        "android_client_info": {
+          "package_name": "sahak.sahakyan.dynamicdeals"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMgozoMahj_nAQeHD16ubmR-QZ3JTjius"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
