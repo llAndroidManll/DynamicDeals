@@ -1,4 +1,4 @@
-package sahak.sahakyan.dynamicdeals.ui.theme
+package sahak.sahakyan.dynamicdeals.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
