@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import sahak.sahakyan.dynamicdeals.presentation.ui.registration.SignUpScreen
+import sahak.sahakyan.dynamicdeals.presentation.ui.sign_up.SignUpScreen
 import sahak.sahakyan.dynamicdeals.presentation.ui.theme.DynamicDealsTheme
 
 
