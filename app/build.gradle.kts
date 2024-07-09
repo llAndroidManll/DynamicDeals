@@ -90,6 +90,7 @@ dependencies {
 
     // Lifecycle LiveData KTX
     implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation("androidx.compose.runtime:runtime-livedata:1.0.0")
 
     // Testing dependencies (assuming these are your existing ones)
     testImplementation(libs.junit)

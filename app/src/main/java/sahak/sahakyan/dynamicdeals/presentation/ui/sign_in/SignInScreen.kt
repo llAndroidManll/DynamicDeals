@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,17 +38,21 @@ import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
+import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
 
 @Composable
 fun SignInScreen(
-    viewModel: SignUpViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = hiltViewModel(),
     navigateToSignUp : ()->Unit = {},
     navigateToHome : ()->Unit = {}
 ) {
 
+    val authState = viewModel.authState.observeAsState()
+    val userState = viewModel.userState.observeAsState()
+
     val user = remember {
-        MutableLiveData<User>(viewModel.user.value)
+        MutableLiveData<User?>(userState.value?.user ?: User())
     }
 
     var email by remember {
@@ -176,6 +181,7 @@ fun SignInScreen(
                     ,
                 ) {
                     // TODO: Navigation to Home Screen
+                    viewModel.setUser(user.value!!)
                     navigateToHome()
                 }
             }

@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,22 +33,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
+import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
+import sahak.sahakyan.dynamicdeals.utils.Resource
 
 @Composable
 fun SignUpScreen(
-    viewModel: SignUpViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = hiltViewModel(),
     navigateToSignIn : ()->Unit = {},
     navigateToVerification : ()->Unit = {}
 ) {
 
+    val authState = viewModel.authState.observeAsState()
+    val userState = viewModel.userState.observeAsState()
+
     val user = remember {
-        MutableLiveData<User>(viewModel.user.value)
+        MutableLiveData<User?>(userState.value?.user ?: User())
     }
 
     var email by remember {
@@ -58,7 +67,7 @@ fun SignUpScreen(
     var password by remember {
         mutableStateOf<String>(user.value?.password ?: "")
     }
-    var seccondPassword by remember {
+    var secondPassword by remember {
         mutableStateOf<String>("")
     }
 
@@ -153,11 +162,11 @@ fun SignUpScreen(
                         ,
                     )
                     CustomOutlinedTextField(
-                        value = seccondPassword,
+                        value = secondPassword,
                         onValueChange = {
-                            seccondPassword = it
+                            secondPassword = it
                         },
-                        placeHolder = "Password",
+                        placeHolder = "Confirm Password",
                         textFieldModifier = Modifier
                             .height(45.dp)
                             .fillMaxWidth()
@@ -170,6 +179,7 @@ fun SignUpScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            // TODO: Navigation to Sign In Screen
                             navigateToSignIn()
                         },
                     horizontalArrangement = Arrangement.Center,
@@ -198,16 +208,26 @@ fun SignUpScreen(
                     ,
                 ) {
                     // TODO: Navigation to Verification Screen
+                    viewModel.setUser(user = user.value!!)
                     navigateToVerification()
                 }
             }
         }
     }
-}
-/*
 
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    SignUpScreen()
-}*/
+    authState.value.let {
+        when (it) {
+            is Resource.Loading -> CircularProgressIndicator()
+            is Resource.Success -> {
+                // TODO: Navigate to Verification Screen
+                navigateToVerification()
+            }
+            is Resource.Error -> {
+                // TODO: Show error message
+            }
+            null -> {
+
+            }
+        }
+    }
+}
