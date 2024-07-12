@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -33,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
@@ -50,6 +54,7 @@ fun SignInScreen(
 
     val authState = viewModel.authState.observeAsState()
     val userState = viewModel.userState.observeAsState()
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     val user = remember {
         MutableLiveData<User?>(userState.value?.user ?: User())
@@ -181,8 +186,10 @@ fun SignInScreen(
                     ,
                 ) {
                     // TODO: Navigation to Home Screen
-                    viewModel.setUser(user.value!!)
-                    navigateToHome()
+                    val setUser = lifecycleScope.launch(Dispatchers.IO) {
+                        viewModel.setUser(user.value!!)
+                        navigateToHome()
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package sahak.sahakyan.dynamicdeals.presentation.ui.sign_up
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -33,16 +35,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
-import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
 import sahak.sahakyan.dynamicdeals.utils.Resource
+import sahak.sahakyan.dynamicdeals.utils.SIGN_UP_SCREEN
 
 @Composable
 fun SignUpScreen(
@@ -53,6 +56,7 @@ fun SignUpScreen(
 
     val authState = viewModel.authState.observeAsState()
     val userState = viewModel.userState.observeAsState()
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     val user = remember {
         MutableLiveData<User?>(userState.value?.user ?: User())
@@ -207,9 +211,24 @@ fun SignUpScreen(
                         .height(30.dp)
                     ,
                 ) {
-                    // TODO: Navigation to Verification Screen
-                    viewModel.setUser(user = user.value!!)
-                    navigateToVerification()
+
+                    val setUser = lifecycleScope.launch(Dispatchers.Main) {
+                        user.value = User(
+                            email = email,
+                            name = name,
+                            password = password,
+                        )
+                        viewModel.setUser(user = user.value!!)
+                    }
+
+                    val joinedCoroutine = lifecycleScope.launch(Dispatchers.IO) {
+                        setUser.join()
+                    }
+
+                    lifecycleScope.launch {
+                        joinedCoroutine.join()
+                        navigateToVerification()
+                    }
                 }
             }
         }

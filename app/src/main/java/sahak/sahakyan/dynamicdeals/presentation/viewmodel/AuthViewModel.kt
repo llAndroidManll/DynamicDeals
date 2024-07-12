@@ -10,6 +10,7 @@ import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.domain.usecase.SignInUseCase
 import sahak.sahakyan.dynamicdeals.domain.usecase.SignUpUseCase
 import sahak.sahakyan.dynamicdeals.domain.usecase.VerifyEmailUseCase
+import sahak.sahakyan.dynamicdeals.utils.AUTH_VIEW_MODEL
 import sahak.sahakyan.dynamicdeals.utils.NAV_GRAPH
 import sahak.sahakyan.dynamicdeals.utils.Resource
 import sahak.sahakyan.dynamicdeals.utils.UserState
@@ -25,10 +26,10 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableLiveData<Resource<AuthResult>>()
     val authState: LiveData<Resource<AuthResult>> get() = _authState
 
-    private val _userState = MutableLiveData<UserState>()
+    private val _userState = MutableLiveData<UserState>(UserState(user = User(), error = ""))
     val userState: LiveData<UserState> get() = _userState
 
-    fun signIn(email: String, password: String) {
+    suspend fun signIn(email: String, password: String) {
         _authState.value = Resource.Loading
         signInUseCase(email, password) { result ->
             _authState.value = if (result.isSuccess) {
@@ -39,7 +40,8 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String) {
+    suspend fun signUp(email: String, password: String)  {
+        Log.d(AUTH_VIEW_MODEL, "AuthViewModel class: signUp() called with email: $email and password: $password")
         _authState.value = Resource.Loading
         signUpUseCase(email, password) { result ->
             _authState.value = if (result.isSuccess) {
@@ -50,16 +52,19 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun sendVerificationEmail() {
+    suspend fun sendVerificationEmail() {
         verifyEmailUseCase { result ->
             // Handle verification email result
         }
     }
 
-    fun setUser(user: User) {
-        _userState.value.let {
+    suspend fun setUser(user: User) {
+        Log.d(NAV_GRAPH,"AuthViewModel class: setUser() called with user = $user")
+        if (_userState.value != null) {
             _userState.value = UserState(user = user)
-            Log.d(NAV_GRAPH,"AuthViewModel-setUser(): _userState.value = ${_userState.value}")
+            Log.d(NAV_GRAPH,"AuthViewModel class: setUser() called and user state has been updated to ${_userState.value.toString()}")
+        } else {
+            throw IllegalStateException("AuthViewModel class: setUser() called and user state has not been updated because the user state is null")
         }
     }
     fun setDefaultUser() {

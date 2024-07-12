@@ -8,15 +8,15 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val authService: FirebaseAuthService
 ) : AuthRepository {
-    override fun signUp(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
+    override suspend fun signUp(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
         authService.signUpWithEmail(email, password, onComplete)
     }
 
-    override fun signIn(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
+    override suspend fun signIn(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
         authService.signInWithEmail(email, password, onComplete)
     }
 
-    override fun sendVerificationEmail(onComplete: (Result<Void>) -> Unit) {
+    override suspend fun sendVerificationEmail(onComplete: (Result<Void>) -> Unit) {
         authService.sendVerificationEmail(onComplete)
     }
 

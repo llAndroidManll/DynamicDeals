@@ -15,9 +15,13 @@ import sahak.sahakyan.dynamicdeals.presentation.ui.verification.VerificationScre
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import sahak.sahakyan.dynamicdeals.data.model.User
-import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import sahak.sahakyan.dynamicdeals.utils.NAV_GRAPH
+
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CustomNavGraph(
@@ -26,6 +30,8 @@ fun CustomNavGraph(
 
     val authViewModel: AuthViewModel = hiltViewModel()
     val userState by authViewModel.userState.observeAsState()
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+
 
     NavHost(navController = navController, startDestination = SignUp.route) {
         composable(Home.route) {
@@ -39,7 +45,10 @@ fun CustomNavGraph(
                     authViewModel.setDefaultUser()
                 },
                 navigateToHome = {
-                    authViewModel.signIn(userState!!.user.email,userState!!.user.password)
+
+                    val coroutine = lifecycleScope.launch(Dispatchers.IO){
+                        authViewModel.signIn(userState!!.user.email,userState!!.user.password)
+                    }
                     navController.navigate(Home.route)
                     authViewModel.setDefaultUser()
                 }
@@ -53,16 +62,31 @@ fun CustomNavGraph(
                     authViewModel.setDefaultUser()
                 },
                 navigateToVerification = {
-                    Log.d(NAV_GRAPH, "CustomNavGraph-navigateToVerification -> (): ")
-                    authViewModel.signUp(userState!!.user.email,userState!!.user.password)
-                    navController.navigate(VerifyEmail.route)
-                    authViewModel.setDefaultUser()
+                    val verification = lifecycleScope.launch {
+                        Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}")
+                        authViewModel.signUp(userState!!.user.email,userState!!.user.password)
+                        Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} ended successfully")
+                    }
+
+                    lifecycleScope.launch {
+                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} is started")
+                        verification.join()
+                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
+                        navController.navigate(VerifyEmail.route)
+                        withContext(Dispatchers.Main) {
+                            Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} setting default user in authViewModel")
+                            authViewModel.setDefaultUser()
+                        }
+                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} ended successfully")
+                    }
                 }
 
             )
         }
         composable(VerifyEmail.route) {
-            VerificationScreen()
+            VerificationScreen(
+
+            )
         }
     }
 

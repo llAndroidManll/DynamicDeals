@@ -9,7 +9,7 @@ import javax.inject.Inject
 class SignUpUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
-    operator fun invoke(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
+    suspend operator fun invoke(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
         Log.d(NAV_GRAPH,"SignUpUseCase-invoke(): email: $email ; password: $password")
         repository.signUp(email, password, onComplete)
     }

@@ -6,7 +6,7 @@ import javax.inject.Inject
 class VerifyEmailUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
-    operator fun invoke(onComplete: (Result<Void>) -> Unit) {
+    suspend operator fun invoke(onComplete: (Result<Void>) -> Unit) {
         repository.sendVerificationEmail(onComplete)
     }
 }
