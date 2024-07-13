@@ -73,10 +73,6 @@ fun CustomNavGraph(
                         verification.join()
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
                         navController.navigate(VerifyEmail.route)
-                        withContext(Dispatchers.Main) {
-                            Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} setting default user in authViewModel")
-                            authViewModel.setDefaultUser()
-                        }
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} ended successfully")
                     }
                 }
@@ -85,7 +81,13 @@ fun CustomNavGraph(
         }
         composable(VerifyEmail.route) {
             VerificationScreen(
+                viewModel = authViewModel,
+                sendCodeAgain = {
 
+                },
+                navigateToHome = {
+
+                }
             )
         }
     }

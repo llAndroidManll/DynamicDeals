@@ -54,7 +54,7 @@ class AuthViewModel @Inject constructor(
 
     suspend fun sendVerificationEmail() {
         verifyEmailUseCase { result ->
-            // Handle verification email result
+
         }
     }
 

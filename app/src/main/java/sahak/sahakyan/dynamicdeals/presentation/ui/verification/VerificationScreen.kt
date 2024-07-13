@@ -39,20 +39,21 @@ import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
+import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
 
 @Composable
 fun VerificationScreen(
-    viewModel: SignUpViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = hiltViewModel(),
     sendCodeAgain : ()->Unit = {},
     navigateToHome : ()->Unit = {}
 ) {
 
     val user = remember {
-        MutableLiveData<User>(viewModel.user.value)
+        MutableLiveData<User>(viewModel.userState.value?.user)
     }
 
-    var email by remember {
+    val email by remember {
         mutableStateOf<String>(user.value?.email ?: "")
     }
     var code by remember {

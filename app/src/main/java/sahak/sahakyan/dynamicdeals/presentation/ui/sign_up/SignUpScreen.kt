@@ -1,6 +1,7 @@
 package sahak.sahakyan.dynamicdeals.presentation.ui.sign_up
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -42,6 +44,7 @@ import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
+import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomPasswordOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import sahak.sahakyan.dynamicdeals.utils.Resource
@@ -50,13 +53,14 @@ import sahak.sahakyan.dynamicdeals.utils.SIGN_UP_SCREEN
 @Composable
 fun SignUpScreen(
     viewModel: AuthViewModel = hiltViewModel(),
-    navigateToSignIn : ()->Unit = {},
-    navigateToVerification : ()->Unit = {}
+    navigateToSignIn: () -> Unit = {},
+    navigateToVerification: () -> Unit = {}
 ) {
 
     val authState = viewModel.authState.observeAsState()
     val userState = viewModel.userState.observeAsState()
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+    val context = LocalContext.current
 
     val user = remember {
         MutableLiveData<User?>(userState.value?.user ?: User())
@@ -74,6 +78,8 @@ fun SignUpScreen(
     var secondPassword by remember {
         mutableStateOf<String>("")
     }
+
+    var passwordVisibility by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -140,8 +146,7 @@ fun SignUpScreen(
                         placeHolder = "Email",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
                     )
                     CustomOutlinedTextField(
                         value = name,
@@ -151,30 +156,29 @@ fun SignUpScreen(
                         placeHolder = "Name",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
                     )
-                    CustomOutlinedTextField(
+                    CustomPasswordOutlinedTextField(
                         value = password,
-                        onValueChange = {
-                            password = it
-                        },
+                        onValueChange = { password = it },
                         placeHolder = "Password",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
+                        isPassword = true,
+                        passwordVisibility = passwordVisibility,
+                        onPasswordVisibilityChange = { passwordVisibility = it }
                     )
-                    CustomOutlinedTextField(
+                    CustomPasswordOutlinedTextField(
                         value = secondPassword,
-                        onValueChange = {
-                            secondPassword = it
-                        },
+                        onValueChange = { secondPassword = it },
                         placeHolder = "Confirm Password",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
+                        isPassword = true,
+                        passwordVisibility = passwordVisibility,
+                        onPasswordVisibilityChange = { passwordVisibility = it }
                     )
                 }
 
@@ -208,26 +212,25 @@ fun SignUpScreen(
                     containerColor = colorResource(id = R.color.yellow),
                     modifier = Modifier
                         .width(107.dp)
-                        .height(30.dp)
-                    ,
+                        .height(30.dp),
                 ) {
-
-                    val setUser = lifecycleScope.launch(Dispatchers.Main) {
+                    val check = checkInputs(email, name, password, secondPassword)
+                    if (check == "0") {
                         user.value = User(
                             email = email,
                             name = name,
                             password = password,
                         )
-                        viewModel.setUser(user = user.value!!)
-                    }
+                        val setUser = lifecycleScope.launch(Dispatchers.Main) {
+                            viewModel.setUser(user = user.value!!)
+                        }
 
-                    val joinedCoroutine = lifecycleScope.launch(Dispatchers.IO) {
-                        setUser.join()
-                    }
-
-                    lifecycleScope.launch {
-                        joinedCoroutine.join()
-                        navigateToVerification()
+                        lifecycleScope.launch {
+                            setUser.join()
+                            navigateToVerification()
+                        }
+                    } else {
+                        Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -241,12 +244,31 @@ fun SignUpScreen(
                 // TODO: Navigate to Verification Screen
                 navigateToVerification()
             }
+
             is Resource.Error -> {
                 // TODO: Show error message
             }
+
             null -> {
 
             }
         }
     }
+}
+
+private fun checkInputs(
+    email: String,
+    name: String,
+    password: String,
+    secondPassword: String,
+): String {
+    if (email.isBlank()) return "Email cannot be empty"
+    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "Invalid email format"
+    if (name.isBlank()) return "Name cannot be empty"
+    if (password.isBlank()) return "Password cannot be empty"
+    if (password.length < 6 && password.length > 21) return "Password must be at least 6 characters long"
+    if (!password.any { it.isUpperCase() }) return "Password must contain at least one uppercase letter"
+    if (!password.any { it.isDigit() || !it.isLetterOrDigit() }) return "Password must contain at least one symbol"
+    if (password != secondPassword) return "Passwords do not match"
+    return "0"
 }
