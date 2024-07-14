@@ -21,7 +21,6 @@ import sahak.sahakyan.dynamicdeals.utils.NAV_GRAPH
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CustomNavGraph(
@@ -62,7 +61,7 @@ fun CustomNavGraph(
                     authViewModel.setDefaultUser()
                 },
                 navigateToVerification = {
-                    val verification = lifecycleScope.launch {
+                    val signUpJob = lifecycleScope.launch {
                         Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}")
                         authViewModel.signUp(userState!!.user.email,userState!!.user.password)
                         Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} ended successfully")
@@ -70,8 +69,9 @@ fun CustomNavGraph(
 
                     lifecycleScope.launch {
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} is started")
-                        verification.join()
+                        signUpJob.join()
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
+                        authViewModel.sendVerificationEmail()
                         navController.navigate(VerifyEmail.route)
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} ended successfully")
                     }
@@ -82,12 +82,13 @@ fun CustomNavGraph(
         composable(VerifyEmail.route) {
             VerificationScreen(
                 viewModel = authViewModel,
+                navigateToHome = {
+
+                },
                 sendCodeAgain = {
 
                 },
-                navigateToHome = {
 
-                }
             )
         }
     }

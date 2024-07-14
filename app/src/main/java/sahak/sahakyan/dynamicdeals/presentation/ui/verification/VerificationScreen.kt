@@ -162,6 +162,7 @@ fun VerificationScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CustomText(
+                        // TODO: Send Again
                         text = "Send Again ?",
                         fontSize = 12.sp,
                     )

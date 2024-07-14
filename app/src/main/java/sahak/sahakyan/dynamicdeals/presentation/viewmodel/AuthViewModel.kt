@@ -53,8 +53,13 @@ class AuthViewModel @Inject constructor(
     }
 
     suspend fun sendVerificationEmail() {
+        _authState.value = Resource.Loading
         verifyEmailUseCase { result ->
-
+            if (result.isSuccess) {
+                _authState.value = Resource.Success(null)
+            } else {
+                _authState.value = Resource.Error(result.exceptionOrNull()?.message.toString())
+            }
         }
     }
 
