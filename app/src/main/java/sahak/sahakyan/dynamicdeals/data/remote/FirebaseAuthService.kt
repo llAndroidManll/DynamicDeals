@@ -41,4 +41,12 @@ class FirebaseAuthService @Inject constructor(
             }
     }
 
+    fun isUserVerified(email: String): Boolean {
+        return auth.currentUser?.isEmailVerified ?: false
+    }
+
+    fun signOut() {
+        auth.signOut()
+    }
+
 }

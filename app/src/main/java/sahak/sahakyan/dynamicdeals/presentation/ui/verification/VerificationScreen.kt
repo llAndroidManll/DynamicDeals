@@ -40,13 +40,12 @@ import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
-import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
 
 @Composable
 fun VerificationScreen(
     viewModel: AuthViewModel = hiltViewModel(),
     sendCodeAgain : ()->Unit = {},
-    navigateToHome : ()->Unit = {}
+    navigateToSignIn : ()->Unit = {}
 ) {
 
     val user = remember {
@@ -119,7 +118,7 @@ fun VerificationScreen(
                         )
                     )
                     Text(
-                        text = "Please check your inbox and\nenter the code below.",
+                        text = "Please check your inbox.",
                         style = TextStyle(
                             color = Color.White,
                             fontSize = 17.sp,
@@ -175,7 +174,7 @@ fun VerificationScreen(
 
                 // Button
                 ButtonStyle(
-                    text = "Sign Up",
+                    text = "Back To Sign In",
                     fontSize = 13.sp,
                     shape = 20,
                     containerColor = colorResource(id = R.color.yellow),
@@ -184,8 +183,7 @@ fun VerificationScreen(
                         .height(30.dp)
                     ,
                 ) {
-                    // TODO: Navigation to Home Screen
-                    navigateToHome()
+                    navigateToSignIn()
                 }
             }
         }

@@ -5,7 +5,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthResult
+import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import sahak.sahakyan.dynamicdeals.data.model.User
 import sahak.sahakyan.dynamicdeals.domain.usecase.SignInUseCase
 import sahak.sahakyan.dynamicdeals.domain.usecase.SignUpUseCase
@@ -45,8 +48,14 @@ class AuthViewModel @Inject constructor(
         _authState.value = Resource.Loading
         signUpUseCase(email, password) { result ->
             _authState.value = if (result.isSuccess) {
+                Log.i(AUTH_VIEW_MODEL,"Sign Up was successful with email $email")
+                viewModelScope.launch {
+                    sendVerificationEmail()
+                    Log.i(AUTH_VIEW_MODEL,"Verification email sent to $email")
+                }
                 Resource.Success(result.getOrNull())
             } else {
+                Log.i(AUTH_VIEW_MODEL,"Sign Up was not successful with email $email")
                 Resource.Error(result.exceptionOrNull()?.message)
             }
         }

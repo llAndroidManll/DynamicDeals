@@ -62,16 +62,14 @@ fun CustomNavGraph(
                 },
                 navigateToVerification = {
                     val signUpJob = lifecycleScope.launch {
-                        Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}")
+                        Log.d(NAV_GRAPH, "navigateToVerification(): val signUpJob = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}")
                         authViewModel.signUp(userState!!.user.email,userState!!.user.password)
                         Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} ended successfully")
                     }
-
                     lifecycleScope.launch {
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} is started")
                         signUpJob.join()
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
-                        authViewModel.sendVerificationEmail()
                         navController.navigate(VerifyEmail.route)
                         Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} ended successfully")
                     }
@@ -82,11 +80,15 @@ fun CustomNavGraph(
         composable(VerifyEmail.route) {
             VerificationScreen(
                 viewModel = authViewModel,
-                navigateToHome = {
-
+                navigateToSignIn = {
+                    navController.navigate(SignIn.route)
                 },
                 sendCodeAgain = {
-
+                    lifecycleScope.launch {
+                        Log.d(NAV_GRAPH, "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} called")
+                        authViewModel.sendVerificationEmail()
+                        Log.d(NAV_GRAPH, "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} ended")
+                    }
                 },
 
             )
