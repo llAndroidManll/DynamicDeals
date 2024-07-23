@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.internal.wait
 import sahak.sahakyan.dynamicdeals.data.model.User
@@ -43,19 +44,22 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    suspend fun signUp(email: String, password: String)  {
-        Log.d(AUTH_VIEW_MODEL, "AuthViewModel class: signUp() called with email: $email and password: $password")
+    suspend fun signUp(email: String, password: String) {
+        Log.d(
+            AUTH_VIEW_MODEL,
+            "AuthViewModel class: signUp() called with email: $email and password: $password"
+        )
         _authState.value = Resource.Loading
         signUpUseCase(email, password) { result ->
             _authState.value = if (result.isSuccess) {
-                Log.i(AUTH_VIEW_MODEL,"Sign Up was successful with email $email")
+                Log.i(AUTH_VIEW_MODEL, "Sign Up was successful with email $email")
                 viewModelScope.launch {
                     sendVerificationEmail()
-                    Log.i(AUTH_VIEW_MODEL,"Verification email sent to $email")
+                    Log.i(AUTH_VIEW_MODEL, "Verification email sent to $email")
                 }
                 Resource.Success(result.getOrNull())
             } else {
-                Log.i(AUTH_VIEW_MODEL,"Sign Up was not successful with email $email")
+                Log.i(AUTH_VIEW_MODEL, "Sign Up was not successful with email $email")
                 Resource.Error(result.exceptionOrNull()?.message)
             }
         }
@@ -73,18 +77,32 @@ class AuthViewModel @Inject constructor(
     }
 
     suspend fun setUser(user: User) {
-        Log.d(NAV_GRAPH,"AuthViewModel class: setUser() called with user = $user")
+        Log.d(NAV_GRAPH, "AuthViewModel class: setUser() called with user = $user")
         if (_userState.value != null) {
             _userState.value = UserState(user = user)
-            Log.d(NAV_GRAPH,"AuthViewModel class: setUser() called and user state has been updated to ${_userState.value.toString()}")
+            Log.d(
+                NAV_GRAPH,
+                "AuthViewModel class: setUser() called and user state has been updated to ${_userState.value.toString()}"
+            )
         } else {
             throw IllegalStateException("AuthViewModel class: setUser() called and user state has not been updated because the user state is null")
         }
     }
+
     fun setDefaultUser() {
         _userState.value.let {
             _userState.value = UserState(user = User())
         }
     }
 
+    fun isUserVerified() = signUpUseCase.isUserVerified()
+
 }
+
+/*fun setDefaultUser() {
+    viewModelScope.launch(Dispatchers.Main) {
+        _userState.value.let {
+            _userState.value = UserState(user = User())
+        }
+    }
+}*/

@@ -6,4 +6,5 @@ interface AuthRepository {
    suspend fun signUp(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit)
    suspend fun signIn(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit)
    suspend fun sendVerificationEmail(onComplete: (Result<Void>) -> Unit)
+   fun isUserVerified(): Boolean
 }

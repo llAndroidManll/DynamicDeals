@@ -137,19 +137,6 @@ fun VerificationScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(31.dp)
             ) {
-                // Inputs
-                CustomOutlinedTextField(
-                    value = code,
-                    onValueChange = {
-                        code = it
-                    },
-                    placeHolder = "Code",
-                    textFieldModifier = Modifier
-                        .height(45.dp)
-                        .fillMaxWidth()
-                    ,
-                )
-
                 // Text
                 Row(
                     modifier = Modifier
@@ -179,7 +166,6 @@ fun VerificationScreen(
                     shape = 20,
                     containerColor = colorResource(id = R.color.yellow),
                     modifier = Modifier
-                        .width(107.dp)
                         .height(30.dp)
                     ,
                 ) {

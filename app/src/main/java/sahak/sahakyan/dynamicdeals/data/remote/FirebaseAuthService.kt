@@ -10,18 +10,26 @@ class FirebaseAuthService @Inject constructor(
     private val auth: FirebaseAuth
 ) {
 
-    suspend fun signUpWithEmail(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
+    suspend fun signUpWithEmail(
+        email: String,
+        password: String,
+        onComplete: (Result<AuthResult>) -> Unit
+    ) {
         auth.createUserWithEmailAndPassword(email, password)
-           .addOnCompleteListener { task ->
-               if (task.isSuccessful)   onComplete(Result.success(task.result))
-               else onComplete(Result.failure(task.exception ?: Exception("Unknown error")))
-           }
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) onComplete(Result.success(task.result))
+                else onComplete(Result.failure(task.exception ?: Exception("Unknown error")))
+            }
     }
 
-    suspend fun signInWithEmail(email: String, password: String, onComplete: (Result<AuthResult>) -> Unit) {
-        auth.signInWithEmailAndPassword(email,password)
-            .addOnCompleteListener{ task ->
-                if (task.isSuccessful)   onComplete(Result.success(task.result))
+    suspend fun signInWithEmail(
+        email: String,
+        password: String,
+        onComplete: (Result<AuthResult>) -> Unit
+    ) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) onComplete(Result.success(task.result))
                 else onComplete(Result.failure(task.exception ?: Exception("Unknown error")))
             }
     }
@@ -41,9 +49,18 @@ class FirebaseAuthService @Inject constructor(
             }
     }
 
-    fun isUserVerified(email: String): Boolean {
-        return auth.currentUser?.isEmailVerified ?: false
+    fun isUserVerified(): Boolean {
+        Log.d(FIRABASE_AUTH, "isUserVerified(): current user is = ${auth.currentUser.toString()}")
+        if (auth.currentUser == null) {
+            Log.d(FIRABASE_AUTH, "isUserVerified(): current user is equal to null")
+            return false
+        } else {
+            val result = auth.currentUser?.isEmailVerified
+            Log.d(FIRABASE_AUTH, "isUserVerified(): result = $result")
+            return result ?: false
+        }
     }
+
 
     fun signOut() {
         auth.signOut()

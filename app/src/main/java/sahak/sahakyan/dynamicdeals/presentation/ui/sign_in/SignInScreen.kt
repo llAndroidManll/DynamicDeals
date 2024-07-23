@@ -1,5 +1,7 @@
 package sahak.sahakyan.dynamicdeals.presentation.ui.sign_in
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -39,22 +44,29 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.data.model.User
+import sahak.sahakyan.dynamicdeals.navigation.Screen.Home
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.ButtonStyle
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomOutlinedTextField
+import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomPasswordOutlinedTextField
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.AuthViewModel
 import sahak.sahakyan.dynamicdeals.presentation.viewmodel.SignUpViewModel
+import sahak.sahakyan.dynamicdeals.utils.NAV_GRAPH
+import sahak.sahakyan.dynamicdeals.utils.Resource
+import sahak.sahakyan.dynamicdeals.utils.SIGN_IN_SCREEN
+import sahak.sahakyan.dynamicdeals.utils.SIGN_UP_SCREEN
 
 @Composable
 fun SignInScreen(
     viewModel: AuthViewModel = hiltViewModel(),
-    navigateToSignUp : ()->Unit = {},
-    navigateToHome : ()->Unit = {}
+    navigateToSignUp: () -> Unit = {},
+    navigateToHome: () -> Unit = {}
 ) {
 
-    val authState = viewModel.authState.observeAsState()
+    val authState by viewModel.authState.observeAsState()
     val userState = viewModel.userState.observeAsState()
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+    val context = LocalContext.current
 
     val user = remember {
         MutableLiveData<User?>(userState.value?.user ?: User())
@@ -63,12 +75,11 @@ fun SignInScreen(
     var email by remember {
         mutableStateOf<String>(user.value?.email ?: "")
     }
-    var name by remember {
-        mutableStateOf<String>(user.value?.name ?: "")
-    }
     var password by remember {
         mutableStateOf<String>(user.value?.password ?: "")
     }
+
+    var passwordVisibility by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -124,8 +135,7 @@ fun SignInScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding()
-                    ,
+                        .padding(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(25.dp)
                 ) {
@@ -137,19 +147,18 @@ fun SignInScreen(
                         placeHolder = "Email",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
                     )
-                    CustomOutlinedTextField(
+                    CustomPasswordOutlinedTextField(
                         value = password,
-                        onValueChange = {
-                            password = it
-                        },
+                        onValueChange = { password = it },
                         placeHolder = "Password",
                         textFieldModifier = Modifier
                             .height(45.dp)
-                            .fillMaxWidth()
-                        ,
+                            .fillMaxWidth(),
+                        isPassword = true,
+                        passwordVisibility = passwordVisibility,
+                        onPasswordVisibilityChange = { passwordVisibility = it }
                     )
                 }
 
@@ -182,22 +191,77 @@ fun SignInScreen(
                     containerColor = colorResource(id = R.color.yellow),
                     modifier = Modifier
                         .width(107.dp)
-                        .height(30.dp)
-                    ,
+                        .height(30.dp),
                 ) {
                     // TODO: Navigation to Home Screen
-                    val setUser = lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.setUser(user.value!!)
-                        navigateToHome()
+                    user.value = User(
+                        email = email,
+                        password = password,
+                    )
+
+                    val check = checkInputs(email,password,)
+                    if (check == "0") {
+                        lifecycleScope.launch {
+                            val setUser = launch(Dispatchers.Main) {
+                                viewModel.setUser(user.value!!)
+                            }
+                            setUser.join()
+                            Log.i(
+                                SIGN_IN_SCREEN,
+                                "On Sign In Button Click: user = ${viewModel.userState.value?.user}"
+                            )
+                            navigateToHome()
+                        }
+                    } else {
+                        Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
+
+
+        }
+
+    }
+
+    when (authState) {
+        is Resource.Loading -> {
+            Log.i(SIGN_IN_SCREEN, "Loading:")
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is Resource.Success -> {
+            Log.i(SIGN_IN_SCREEN, "Success")
+        }
+
+        is Resource.Error -> {
+            Log.i(SIGN_IN_SCREEN, "Error:")
+            Toast.makeText(context, "Not correct Email or Password", Toast.LENGTH_SHORT).show()
+        }
+
+        null -> {
+            Log.i(SIGN_IN_SCREEN, "null:")
         }
     }
+
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SignInScreenPreview() {
     SignInScreen()
+}
+
+private fun checkInputs(
+    email: String,
+    password: String,
+): String {
+    if (email.isBlank()) return "Email cannot be empty"
+    if (password.isBlank()) return "Password cannot be empty"
+    return "0"
 }

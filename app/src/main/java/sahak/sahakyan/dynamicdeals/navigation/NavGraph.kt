@@ -1,6 +1,7 @@
 package sahak.sahakyan.dynamicdeals.navigation
 
 import android.util.Log
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,8 +20,13 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import sahak.sahakyan.dynamicdeals.utils.NAV_GRAPH
 
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
+import sahak.sahakyan.dynamicdeals.utils.Resource
 
 @Composable
 fun CustomNavGraph(
@@ -30,9 +36,10 @@ fun CustomNavGraph(
     val authViewModel: AuthViewModel = hiltViewModel()
     val userState by authViewModel.userState.observeAsState()
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+    val authState by authViewModel.authState.observeAsState()
 
 
-    NavHost(navController = navController, startDestination = SignUp.route) {
+    NavHost(navController = navController, startDestination = SignIn.route) {
         composable(Home.route) {
             HomeScreen()
         }
@@ -44,12 +51,14 @@ fun CustomNavGraph(
                     authViewModel.setDefaultUser()
                 },
                 navigateToHome = {
-
-                    val coroutine = lifecycleScope.launch(Dispatchers.IO){
-                        authViewModel.signIn(userState!!.user.email,userState!!.user.password)
+                    val signIn = lifecycleScope.launch(Dispatchers.Main) {
+                        authViewModel.signIn(userState!!.user.email, userState!!.user.password)
                     }
-                    navController.navigate(Home.route)
-                    authViewModel.setDefaultUser()
+                    lifecycleScope.launch {
+                        signIn.join()
+                        authViewModel.setDefaultUser()
+                        navController.navigate(Home.route)
+                    }
                 }
             )
         }
@@ -62,19 +71,24 @@ fun CustomNavGraph(
                 },
                 navigateToVerification = {
                     val signUpJob = lifecycleScope.launch {
-                        Log.d(NAV_GRAPH, "navigateToVerification(): val signUpJob = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}")
-                        authViewModel.signUp(userState!!.user.email,userState!!.user.password)
-                        Log.d(NAV_GRAPH, "navigateToVerification(): val verification = lifecycleScope.launch {} ended successfully")
+                        Log.d(
+                            NAV_GRAPH,
+                            "navigateToVerification(): val signUpJob = lifecycleScope.launch {} called with user = ${authViewModel.userState.value?.user.toString()}"
+                        )
+                        authViewModel.signUp(userState!!.user.email, userState!!.user.password)
+                        Log.d(
+                            NAV_GRAPH,
+                            "navigateToVerification(): val verification = lifecycleScope.launch {} ended successfully"
+                        )
                     }
                     lifecycleScope.launch {
-                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} is started")
+                        Log.d(NAV_GRAPH,"navigateToVerification(): lifecycleScope.launch {} is started")
                         signUpJob.join()
-                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
+                        Log.d(NAV_GRAPH,"navigateToVerification(): lifecycleScope.launch {} navigating to VerifyEmail.route with auth state = ${authViewModel.authState.value.toString()}")
                         navController.navigate(VerifyEmail.route)
-                        Log.d(NAV_GRAPH, "navigateToVerification(): lifecycleScope.launch {} ended successfully")
+                        Log.d(NAV_GRAPH,"navigateToVerification(): lifecycleScope.launch {} ended successfully")
                     }
                 }
-
             )
         }
         composable(VerifyEmail.route) {
@@ -85,18 +99,19 @@ fun CustomNavGraph(
                 },
                 sendCodeAgain = {
                     lifecycleScope.launch {
-                        Log.d(NAV_GRAPH, "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} called")
+                        Log.d(
+                            NAV_GRAPH,
+                            "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} called"
+                        )
                         authViewModel.sendVerificationEmail()
-                        Log.d(NAV_GRAPH, "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} ended")
+                        Log.d(
+                            NAV_GRAPH,
+                            "VerificationScreen(): sendCodeAgain(): lifecycleScope.launch {} ended"
+                        )
                     }
                 },
 
-            )
+                )
         }
     }
-
-    LaunchedEffect(userState) {
-
-    }
-
 }

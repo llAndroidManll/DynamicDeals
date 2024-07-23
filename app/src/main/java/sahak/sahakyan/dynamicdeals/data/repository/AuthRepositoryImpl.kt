@@ -20,4 +20,8 @@ class AuthRepositoryImpl @Inject constructor(
         authService.sendVerificationEmail(onComplete)
     }
 
+    override fun isUserVerified(): Boolean {
+        return authService.isUserVerified()
+    }
+
 }
