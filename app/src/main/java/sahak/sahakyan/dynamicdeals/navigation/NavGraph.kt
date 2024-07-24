@@ -110,8 +110,7 @@ fun CustomNavGraph(
                         )
                     }
                 },
-
-                )
+            )
         }
     }
 }
