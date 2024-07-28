@@ -13,7 +13,8 @@ import androidx.compose.ui.unit.sp
 fun CustomText(
     text: String = "",
     fontSize: TextUnit = 24.sp,
-    color: Color = Color.White
+    color: Color = Color.White,
+    fontFamily: FontFamily = FontFamily.SansSerif
 ) {
     Text(
         text = text,
@@ -21,7 +22,7 @@ fun CustomText(
             color = color,
             fontSize = fontSize,
             fontWeight = FontWeight.Normal,
-            fontFamily = FontFamily.SansSerif,
+            fontFamily = fontFamily,
         )
     )
 }
