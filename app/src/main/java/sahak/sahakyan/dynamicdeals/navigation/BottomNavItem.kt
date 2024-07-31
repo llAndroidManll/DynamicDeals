@@ -8,7 +8,7 @@ sealed class BottomNavItem(
 ) {
     data object Home : BottomNavItem(
         "Home",
-        R.drawable.gray_home
+        R.drawable.home
     )
 
     data object Search : BottomNavItem(

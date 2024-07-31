@@ -1,11 +1,14 @@
 package sahak.sahakyan.dynamicdeals.presentation.ui.home
 
+import android.annotation.SuppressLint
 import android.view.RoundedCorner
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -47,6 +51,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.exyte.animatednavbar.AnimatedNavigationBar
+import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
+import com.exyte.animatednavbar.animation.balltrajectory.Straight
+import com.exyte.animatednavbar.animation.balltrajectory.Teleport
+import com.exyte.animatednavbar.animation.indendshape.Height
+import com.exyte.animatednavbar.animation.indendshape.ShapeCornerRadius
+import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
+import com.exyte.animatednavbar.utils.noRippleClickable
 import sahak.sahakyan.dynamicdeals.R
 import sahak.sahakyan.dynamicdeals.navigation.BottomNavItem
 import sahak.sahakyan.dynamicdeals.presentation.ui.components.CustomText
@@ -57,8 +69,7 @@ fun HomeScreen() {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.gray))
-        ,
+            .background(colorResource(id = R.color.gray)),
         topBar = {
             TopAppBarSearchField()
         },
@@ -78,7 +89,7 @@ fun HomeScreen() {
 
 }
 
-@Composable
+/*@Composable
 fun BottomAppBar(
     onIconClick: (String) -> Unit = {}
 ) {
@@ -120,6 +131,7 @@ fun BottomAppBar(
                     ) {
                         IconButton(
                             onClick = {
+                                selectedItem = index
                                 onIconClick(item.title)
                             },
                             modifier = Modifier
@@ -146,6 +158,10 @@ fun BottomAppBar(
                 } else {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            selectedItem = index
+                            onIconClick(item.title)
+                        }
                     ) {
                         Icon(
                             painter = painterResource(id = item.icon),
@@ -158,7 +174,65 @@ fun BottomAppBar(
             }
         }
     }
+}*/
+
+@Composable
+fun BottomAppBar(
+    onIconClick: (String) -> Unit = {}
+) {
+
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val items =
+        listOf(BottomNavItem.Home, BottomNavItem.Search, BottomNavItem.Cart, BottomNavItem.Heart)
+
+    AnimatedNavigationBar(
+        modifier = Modifier
+            .height(60.dp)
+            .fillMaxWidth()
+        ,
+        selectedIndex = selectedIndex,
+        cornerRadius = shapeCornerRadius(cornerRadius = 34.dp),
+        ballAnimation = Parabolic(tween(300)),
+        indentAnimation = Height(tween(300)),
+        barColor = colorResource(id = R.color.white),
+        ballColor = colorResource(id = R.color.yellow),
+    ) {
+        items.forEach { item ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .noRippleClickable {
+                        selectedIndex = items.indexOf(item)
+                        onIconClick(item.title)
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    modifier = Modifier,
+                    painter = painterResource(id = item.icon),
+                    contentDescription = item.title,
+                    tint = if (selectedIndex == items.indexOf(item)) colorResource(
+                        id = R.color.yellow
+                    ) else colorResource(
+                        id = R.color.gray
+                    ),
+                )
+            }
+        }
+    }
 }
+
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
+    clickable(
+        indication = null,
+        interactionSource = remember {
+            MutableInteractionSource()
+    }) {
+        onClick()
+    }
+}
+
 
 @Composable
 fun TopAppBarSearchField(
@@ -173,8 +247,7 @@ fun TopAppBarSearchField(
                 start = 16.dp,
                 end = 16.dp
             )
-            .height(50.dp)
-        ,
+            .height(50.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -190,11 +263,11 @@ fun TopAppBarSearchField(
                 )
                 .clickable {
                     onMenuClick()
-                }
-            ,
-            verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
-            
-        ) {
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+
+            ) {
             Icon(
                 painter = painterResource(R.drawable.menu),
                 contentDescription = "",
@@ -214,16 +287,15 @@ fun TopAppBarSearchField(
                 )
                 .clickable {
                     onProfileClick()
-                }
-            ,
-            verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
 
             ) {
             Image(
                 modifier = Modifier
                     .height(30.dp)
-                    .width(30.dp)
-                ,
+                    .width(30.dp),
                 painter = painterResource(R.drawable.men),
                 contentDescription = ""
             )
